@@ -1,7 +1,7 @@
 ## GPIC - Remote Game Testing Environment with NICE DCV for 4K 60 FPS Streaming - Demo Environment
 The nice-dcv-workstation-demo-environment repository contains a script that allows to single-command deploy a working demo environment via AWS CloudShell to stream high-resolution and low-latency video from a G4dn instance using the QUIC UDP protocol from NICE DCV. The script leverages the latest EC2 AMI that packages NICE, registry optimizations and NVIDIA game drivers. AWS Session Manager is used to provide ssh-less browser access to the instance for administration using your AWS role permissions and the script provides login and logout functionality to turn on/enable the virtual workstation and scoped-down security group when needed and turn off/disable them when not to save cost and to lock down access. The script supports multiple workstations in the same demo environment using different hostnames (limited by VPC/Subnet size and your accounts' on-demand G-instance service limits) and can be modified to add extra networking and storage capabilities (e.g. AWS Client VPN, FSx for WFS).
 
-![Demo environment architecture](https://github.com/aws-samples/nicedcv-gpic-workstation-demo-environment/blob/main/nicedcv-gpic-workstation-demo-environment_ARCH.png?raw=true)
+![Demo environment architecture](https://github.com/aws-samples/nicedcv-gpic-workstation-demo-environment/blob/main/nice-dcv-gpic-workstation-demo-environment_ARCH.png?raw=true)
 
 ## Prerequisites
 1. Select one of the following regions to run the demo environment (in the AWS console, make sure this region is selected, you'll want a region geographically close to you to reduce latency):
@@ -15,7 +15,7 @@ The nice-dcv-workstation-demo-environment repository contains a script that allo
   * Europe (Ireland)
 2. Check to see if you have sufficiently high service limits to run the virtual workstation. In AWS Quotas, search for "Running On-Demand G instances" or use this [link](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-DB2E81BA) and select the region in which you wish to run the environment. To run the default instance you will need a quota value of at least 16 and you can request a quota increase if needed.
 
-    ![EC2 G instance quotas](https://github.com/aws-samples/nicedcv-gpic-workstation-demo-environment/blob/main/nicedcv-gpic-workstation-demo-environment_SQ.png?raw=true)
+    ![EC2 G instance quotas](https://github.com/aws-samples/nicedcv-gpic-workstation-demo-environment/blob/main/nice-dcv-gpic-workstation-demo-environment_SQ.png?raw=true)
 
 3. Make sure your IAM user/assumed role has `aws-marketplace:subscribe` and `cloudshell:*` permissions. If you are using the [AdministratorAccess](https://console.aws.amazon.com/iam/home#policies/arn:aws:iam::aws:policy/AdministratorAccess) or [PowerUserAccess](https://console.aws.amazon.com/iam/home#policies/arn:aws:iam::aws:policy/PowerUserAccess) managed policies, you will have these enabled automatically.
 4. In AWS Marketplace you will need to subscribe to the [NICE DCV for Windows with UDP/QUIC](https://aws.amazon.com/marketplace/pp/prodview-3k22gxh7x7kdy) product to be able to deploy the AMI to the instance. This is a Windows 2019 image preconfigured with NICE DCV QUIC/UDP and NVIDIA gaming drivers.
@@ -34,13 +34,13 @@ where `YOURHOSTNAME` is case-sensitive and will uniquely identify a workstation 
 *This step is required the first time you set up a new workstation in the demo environment.*
 1. In the AWS Console, navigate to EC2 and locate your instance. Check the box to it and click on **Connect**. In the next screen, with **Session Manager** selected, click on **Connect**.
 
-    ![Accessing the workstation via Session Manager](https://github.com/aws-samples/nicedcv-gpic-workstation-demo-environment/blob/main/nicedcv-gpic-workstation-demo-environment_EC2.png?raw=true)
+    ![Accessing the workstation via Session Manager](https://github.com/aws-samples/nice-dcv-gpic-workstation-demo-environment/blob/main/nicedcv-gpic-workstation-demo-environment_EC2.png?raw=true)
 
 2. In the PS shell, type `net user Administrator "YOURPASSWORDINDOUBLEQUOTES"`
 where `"YOURPASSWORDINDOUBLEQUOTES"` is a sufficiently complex password you will use to connect from your local workstation.
 3. Once complete, you can click on **Terminate** to close the session.
 
-    ![Changing your Windows password](https://github.com/aws-samples/nicedcv-gpic-workstation-demo-environment/blob/main/nicedcv-gpic-workstation-demo-environment_PS.png?raw=true)
+    ![Changing your Windows password](https://github.com/aws-samples/nice-dcv-gpic-workstation-demo-environment/blob/main/nicedcv-gpic-workstation-demo-environment_PS.png?raw=true)
 
 ## Connecting to your workstation
 1. In the AWS CloudShell console, type:
