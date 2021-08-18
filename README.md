@@ -49,7 +49,9 @@ where `"YOURPASSWORDINDOUBLEQUOTES"` is a sufficiently complex password you will
 . nicedcv-gpic-workstation-demo-environment.sh -login --hostname YOURHOSTNAME --ip YOURIPADDRESS
 ```
 where `YOURHOSTNAME` is the case-sensitive hostname you used to create the workstation
+
 where `YOURIPADDRESS` is the public IP address of your local workstation in this format: `1.2.3.4`
+
 This will start the workstation and dynamically create Security Group rules that allows network access to the specified workstation from your local host. The public IP address and hostname to use to remotely connect will be displayed.
 
 2. On your local workstation, open the NICE DCV client application
@@ -75,7 +77,7 @@ In the AWS CloudShell console, type:
 1. Ensure you have backed-up data as required, this operation will permanently delete the instance and attached volume.
 2. In the AWS CloudShell console, type:
 ```
-. nice-dcv-gpic-workstation-demo-environment.sh -delete --hostname YOURHOSTNAME
+. nicedcv-gpic-workstation-demo-environment.sh -delete --hostname YOURHOSTNAME
 ```
 where `YOURHOSTNAME` is the case-sensitive hostname you used to create the workstation
 
