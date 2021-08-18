@@ -27,7 +27,7 @@ The nice-dcv-workstation-demo-environment repository contains a script that allo
 2. Once the shell is live, click on **Actions > Upload File** and upload `nice-dcv-gpic-workstation-demo-environment.sh`.
 3. Run the script with:
 ```
-. nice-dcv-gpic-workstation-demo-environment.sh -create --hostname YOURHOSTNAME
+. nicedcv-gpic-workstation-demo-environment.sh -create --hostname YOURHOSTNAME
 ```
 where `YOURHOSTNAME` is case-sensitive and will uniquely identify a workstation within this demo environment.
 
@@ -46,11 +46,12 @@ where `"YOURPASSWORDINDOUBLEQUOTES"` is a sufficiently complex password you will
 ## Connecting to your workstation
 1. In the AWS CloudShell console, type:
 ```
-. nice-dcv-gpic-workstation-demo-environment.sh -login --hostname YOURHOSTNAME --ip YOURIPADDRESS
+. nicedcv-gpic-workstation-demo-environment.sh -login --hostname YOURHOSTNAME --ip YOURIPADDRESS
 ```
 where `YOURHOSTNAME` is the case-sensitive hostname you used to create the workstation
 where `YOURIPADDRESS` is the public IP address of your local workstation in this format: `1.2.3.4`
 This will start the workstation and dynamically create Security Group rules that allows network access to the specified workstation from your local host. The public IP address and hostname to use to remotely connect will be displayed.
+
 2. On your local workstation, open the NICE DCV client application
 3. In **Connection Settings > Protocol** ensure that QUIC is selected for TCP and UDP ports 8443.
 4. Enter the workstation IP address, click **Connect**, enter the username(default: Administrator) and the password you configured then click on **Login**.
@@ -59,7 +60,7 @@ This will start the workstation and dynamically create Security Group rules that
 1. In the remote workstation, save your work and close the NICE DCV client connection.
 2. In the AWS CloudShell console, type:
 ```
-. nice-dcv-gpic-workstation-demo-environment.sh -logout --hostname YOURHOSTNAME
+. nicedcv-gpic-workstation-demo-environment.sh -logout --hostname YOURHOSTNAME
 ```
 where `YOURHOSTNAME` is the case-sensitive hostname you used to create the workstation
 This will shut down the workstation (data not stored on the attached volume will be lost) and delete the Security Group rules to isolate the instance.
@@ -67,7 +68,7 @@ This will shut down the workstation (data not stored on the attached volume will
 ## Getting the status of the workstations in your environment
 In the AWS CloudShell console, type:
 ```
-. nice-dcv-gpic-workstation-demo-environment.sh -status
+. nicedcv-gpic-workstation-demo-environment.sh -status
 ```
 
 ## Deleting your workstation / demo environment
