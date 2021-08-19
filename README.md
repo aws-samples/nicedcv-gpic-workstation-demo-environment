@@ -1,5 +1,5 @@
 ## GPIC - Remote Game Testing Environment with NICE DCV for 4K 60 FPS Streaming - Demo Environment
-The nice-dcv-workstation-demo-environment repository contains a script that allows to single-command deploy a working demo environment via AWS CloudShell to stream high-resolution and low-latency video from a G4dn instance using the QUIC UDP protocol from NICE DCV. The script leverages the latest EC2 AMI that packages NICE, registry optimizations and NVIDIA game drivers. AWS Session Manager is used to provide ssh-less browser access to the instance for administration using your AWS role permissions and the script provides login and logout functionality to turn on/enable the virtual workstation and scoped-down security group when needed and turn off/disable them when not to save cost and to lock down access. The script supports multiple workstations in the same demo environment using different hostnames (limited by VPC/Subnet size and your accounts' on-demand G-instance service limits) and can be modified to add extra networking and storage capabilities (e.g. AWS Client VPN, FSx for WFS).
+The nicedcv-workstation-demo-environment repository contains a script that allows to single-command deploy a working demo environment via AWS CloudShell to stream high-resolution and low-latency video from a G4dn instance using the QUIC UDP protocol from NICE DCV. The script leverages the latest EC2 AMI that packages NICE, registry optimizations and NVIDIA game drivers. AWS Session Manager is used to provide ssh-less browser access to the instance for administration using your AWS role permissions and the script provides login and logout functionality to turn on/enable the virtual workstation and scoped-down security group when needed and turn off/disable them when not to save cost and to lock down access. The script supports multiple workstations in the same demo environment using different hostnames (limited by VPC/Subnet size and your accounts' on-demand G-instance service limits) and can be modified to add extra networking and storage capabilities (e.g. AWS Client VPN, FSx for WFS).
 
 ![Demo environment architecture](https://github.com/aws-samples/nicedcv-gpic-workstation-demo-environment/blob/4cbe55cf56cf83a18fafcef79a8cc555039aa800/nice-dcv-workstation-demo-environment_ARCH.png)
 
@@ -24,7 +24,7 @@ The nice-dcv-workstation-demo-environment repository contains a script that allo
 
 ## Setup
 1. In the AWS Console, ensure you have the correct region selected and open AWS CloudShell (a terminal icon next to the righty of the search bar is a shortcut to the service)
-2. Once the shell is live, click on **Actions > Upload File** and upload `nice-dcv-gpic-workstation-demo-environment.sh`.
+2. Once the shell is live, click on **Actions > Upload File** and upload `nicedcv-gpic-workstation-demo-environment.sh`.
 3. Run the script with:
 ```
 . nicedcv-gpic-workstation-demo-environment.sh -create --hostname YOURHOSTNAME
