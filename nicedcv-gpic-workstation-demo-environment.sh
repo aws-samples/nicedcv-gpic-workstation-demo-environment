@@ -384,19 +384,21 @@ EOF
     # -----------------------------------------
   5)
     VPCID=$((aws ec2 describe-vpcs --filters Name=cidr,Values=${VPCCIDR} Name=tag:Name,Values=${TAGPREFIX}-vpc | jq '.Vpcs[0].VpcId') 2>&1)
-    WSLIST=$((aws ec2 describe-instances --filters "Name=vpc-id,Values=${VPCID}" | jq '.Reservations[0].Instances') 2>&1)
+    WSLIST=$((aws ec2 describe-instances --filters "Name=vpc-id,Values=${VPCID}" --query Reservations[*].Instances[*]) 2>&1)
     WSLENGTH=$((echo $WSLIST | jq '. | length') 2>&1)
     echo ""
     echo -e "${LIGHTYELLOW}Hostname - IPaddress - Status${ENDCOLOR}"
     for ((i = 0 ; i < $WSLENGTH ; i++))
     do
-        WSHOST=$((echo $WSLIST | jq ".[$i].Tags[] | select(.Key | contains(\"Owner\")) | .Value") 2>&1)
-        WSIPADDR=$((echo $WSLIST | jq ".[$i].PublicIpAddress") 2>&1)
+        TEMPITEM=$((echo $WSLIST | jq ".[$i]") 2>&1)
+        TEMPITEM=${TEMPITEM:2:-2}
+        WSHOST=$((echo $TEMPITEM | jq ".Tags[] | select(.Key | contains(\"Owner\")) | .Value") 2>&1)
+        WSIPADDR=$((echo $TEMPITEM | jq ".PublicIpAddress") 2>&1)
         if [ "${WSIPADDR}" = "null" ]
         then
           WSIPADDR=" not available "
         fi
-        WSSTATUS=$((echo $WSLIST | jq ".[$i].State.Name") 2>&1)
+        WSSTATUS=$((echo $TEMPITEM | jq ".State.Name") 2>&1)
         echo -e "${LIGHTBLUE}${WSHOST:1:-1} - ${WSIPADDR:1:-1} - ${WSSTATUS:1:-1}${ENDCOLOR}"
     done
     echo ""
