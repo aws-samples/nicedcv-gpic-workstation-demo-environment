@@ -195,7 +195,7 @@ case "$RUNOPTION" in
     # Create instance profile. This is required for Systems Manager to work and is how we can easily configure Session Manager on bootstrap.
     IAMINSTANCEPROFILEARN=$((aws iam create-instance-profile --instance-profile-name ${INSTANCEPROFILENAME} | jq '.InstanceProfile.Arn') 2>&1)
     aws iam add-role-to-instance-profile --instance-profile-name ${INSTANCEPROFILENAME} --role-name ${INSTANCEROLENAME}
-    echo "[2/5]Fetching latest AMI fetched from AWSMP"
+    echo "[2/5]Fetching latest AMI from AWSMP"
     AMIID=$((aws ec2 describe-images --region ${AWS_REGION} --owners aws-marketplace --filters "Name=product-code,Values=${NICEDCVPRODUCTCODE}" --query "sort_by(Images, &CreationDate)[-1].[ImageId]") 2>&1)
     #trimming non-standard command output
     AMIID=${AMIID:7:-3}
