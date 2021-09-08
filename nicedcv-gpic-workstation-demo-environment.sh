@@ -29,8 +29,12 @@ SCRIPTNAME=$(basename $BASH_SOURCE)
 # =============================================================================
 # Resource setup
 # ------------------------
-# These are included on CloudShell, just making sure everything is up-to-date.
-TEMP=$((sudo yum -y install jq gettext bash-completion moreutils) 2>&1)
+# Check if jq is installed
+if ! command -v jq &> /dev/null
+then
+  TEMP=$((sudo yum -y install jq) 2>&1)
+  exit
+fi
 
 #Ensuring AWS region is set in configuration
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
@@ -46,7 +50,7 @@ case "$1" in
       USERCHECK=$((aws ssm describe-parameters --parameter-filters Key=Name,Option=Equals,Values=${TAGPREFIX}-$3 | jq '.Parameters[0].Name') 2>&1)
       if [ "${USERCHECK:1:-1}" = "${TAGPREFIX}-$3" ]
       then
-        echo -e "${LIGHTRED}Environment and workstation already exists for this user. Delete SSM parameter${LIGHTMAGENTA} ${TAGPREFIX}-$3 ${LIGHTRED}to remove this check.${ENDCOLOR}"
+        echo -e "${LIGHTRED}Environment and workstation already exists for this hostname. Delete SSM parameter${LIGHTMAGENTA} ${TAGPREFIX}-$3 ${LIGHTRED}to remove this check.${ENDCOLOR}"
         RUNOPTION=-1
       else
         HOSTNAME=$3
@@ -71,7 +75,7 @@ case "$1" in
           RUNOPTION=-1
         fi
       else
-        echo -e "${LIGHTRED}Error: Specified user${LIGHTYELLOW} $3 ${LIGHTRED}does not have an environment provisioned. Create the environment first or check inputs.${ENDCOLOR}" >&2
+        echo -e "${LIGHTRED}Error: Specified hostname${LIGHTYELLOW} $3 ${LIGHTRED}does not have an environment provisioned. Create the environment first or check inputs.${ENDCOLOR}" >&2
         RUNOPTION=-1
       fi
     else
@@ -87,7 +91,7 @@ case "$1" in
         HOSTNAME=$3
         RUNOPTION=3
       else
-        echo -e "${LIGHTRED}Error: Specified user${LIGHTYELLOW} $3 ${LIGHTRED}does not have an environment provisioned. Create the environment first or check inputs.${ENDCOLOR}" >&2
+        echo -e "${LIGHTRED}Error: Specified hostname${LIGHTYELLOW} $3 ${LIGHTRED}does not have an environment provisioned. Create the environment first or check inputs.${ENDCOLOR}" >&2
         RUNOPTION=-1
       fi
     else
@@ -103,7 +107,7 @@ case "$1" in
         HOSTNAME=$3
         RUNOPTION=4
       else
-        echo -e "${LIGHTRED}Error: Specified user${LIGHTYELLOW} $3 ${LIGHTRED}does not have an environment provisioned. Create the environment first or check inputs.${ENDCOLOR}" >&2
+        echo -e "${LIGHTRED}Error: Specified hostname${LIGHTYELLOW} $3 ${LIGHTRED}does not have an environment provisioned. Create the environment first or check inputs.${ENDCOLOR}" >&2
         RUNOPTION=-1
       fi
     else
@@ -143,7 +147,7 @@ case "$RUNOPTION" in
     # -create --hostname ${HOSTNAME}
     # -----------------------------------------
   1)
-    echo -e "${LIGHTGREEN}Creating workstation resources for user${LIGHTYELLOW} ${HOSTNAME} ${ENDCOLOR}"
+    echo -e "${LIGHTGREEN}Creating workstation resources for${LIGHTYELLOW} ${HOSTNAME} ${ENDCOLOR}"
     # =============================================================================
     INSTANCEPROFILENAME=gpicserverprofile-${HOSTNAME}
     INSTANCEROLENAME=gpicserverrole-${HOSTNAME}
@@ -159,6 +163,7 @@ case "$RUNOPTION" in
     TEMP=$((aws ec2 describe-vpcs --filters Name=cidr,Values=${VPCCIDR} Name=tag:Name,Values=${TAGPREFIX}-vpc | jq '.Vpcs[0]') 2>&1)
     if [ "${TEMP}" = "null" ]
     then
+      echo -e "${LIGHTGREEN}Creating network resources${ENDCOLOR}"
       echo "[1/5]Creating VPC"
       VPCID=$((aws ec2 create-vpc --cidr-block ${VPCCIDR} --tag-specifications "ResourceType=vpc,Tags=[{Key=Name,Value=${TAGPREFIX}-vpc},{Key=Group,Value=${TAGPREFIX}},{Key=Owner,Value=${HOSTNAME}}]" | jq '.Vpc.VpcId') 2>&1)
       echo "[2/5]Creating IGW"
@@ -178,6 +183,7 @@ case "$RUNOPTION" in
       PUBLICSUBNETA=$((aws ec2 describe-subnets --filters Name=vpc-id,Values=${VPCID:1:-1} Name=cidr,Values=${VPCSUBNETPUBLICACIDR} | jq '.Subnets[0].SubnetId') 2>&1)
     fi
 
+    echo -e "${LIGHTGREEN}Setting up instance${ENDCOLOR}"
     echo "[1/5]Creating IAM Instance role, profile and policies"
     # The policy is scoped down to exactly what the server needs to work, plus the minimum policies to enable Systems Manager Session Manager so we can check what's happening on our live servers without needing to configure SSH and keys.
     # IAM creation operations have low TPS rates and can be throttled when applied in succession. We add some buffer time here.
@@ -277,7 +283,7 @@ EOF
     # -login --hostname ${HOSTNAME} --ip ${IPADDR}
     # -----------------------------------------
   2)
-    echo -e "${LIGHTGREEN}Connecting to workstation for user${LIGHTYELLOW} ${HOSTNAME} ${ENDCOLOR}"
+    echo -e "${LIGHTGREEN}Connecting to workstation${LIGHTYELLOW} ${HOSTNAME} ${ENDCOLOR}"
     INSTANCEID=$((aws ssm get-parameter --name ${TAGPREFIX}-${HOSTNAME} | jq '.Parameter.Value') 2>&1)
     SGID=$((aws ec2 describe-instances --instance-ids ${INSTANCEID:1:-1} | jq '.Reservations[0].Instances[0].NetworkInterfaces[0].Groups[0].GroupId') 2>&1)
     IPCHECK=$((aws ec2 describe-security-groups --group-ids ${SGID:1:-1} | jq '.SecurityGroups[0].IpPermissions') 2>&1)
@@ -307,7 +313,7 @@ EOF
     # -logout --hostname ${HOSTNAME}
     # -----------------------------------------
   3)
-    echo -e "${LIGHTGREEN}Disconnecting from workstation for user${LIGHTYELLOW} ${HOSTNAME} ${ENDCOLOR}"
+    echo -e "${LIGHTGREEN}Disconnecting from workstation${LIGHTYELLOW} ${HOSTNAME} ${ENDCOLOR}"
     INSTANCEID=$((aws ssm get-parameter --name ${TAGPREFIX}-${HOSTNAME} | jq '.Parameter.Value') 2>&1)
     SGID=$((aws ec2 describe-instances --instance-ids ${INSTANCEID:1:-1} | jq '.Reservations[0].Instances[0].NetworkInterfaces[0].Groups[0].GroupId') 2>&1)
     INGRESSIP=$((aws ec2 describe-security-groups --group-ids ${SGID:1:-1} | jq '.SecurityGroups[0].IpPermissions[0].IpRanges[0].CidrIp') 2>&1)
@@ -323,7 +329,7 @@ EOF
     # -delete --hostname ${HOSTNAME}
     # -----------------------------------------
   4)
-    echo -e "${LIGHTGREEN}Deleting workstation and environment for user${LIGHTYELLOW} ${HOSTNAME} ${ENDCOLOR}"
+    echo -e "${LIGHTGREEN}Deleting workstation and environment${LIGHTYELLOW} ${HOSTNAME} ${ENDCOLOR}"
     # =============================================================================
     INSTANCEPROFILENAME=gpicserverprofile-${HOSTNAME}
     INSTANCEROLENAME=gpicserverrole-${HOSTNAME}
@@ -356,7 +362,7 @@ EOF
     echo "[3/3]Server instance role and profile deleted"
 
     aws ssm delete-parameter --name ${TAGPREFIX}-${HOSTNAME}
-    echo -e "${LIGHTBLUE}Workstation resources for user${LIGHTYELLOW} ${HOSTNAME} ${LIGHTBLUE}deleted.${ENDCOLOR}"
+    echo -e "${LIGHTBLUE}Workstation resources for${LIGHTYELLOW} ${HOSTNAME} ${LIGHTBLUE}deleted.${ENDCOLOR}"
 
     # Check to see if other instances exist in the VPC
     TEMP=$((aws ec2 describe-instances --filters "Name=vpc-id,Values=${VPCID:1:-1}" | jq '.Reservations[0].Instances[0]') 2>&1)
