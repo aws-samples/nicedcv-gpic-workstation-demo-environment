@@ -135,6 +135,7 @@ case "$1" in
     ;;
   *)
     echo -e "${LIGHTRED}Type ${LIGHTCYAN}. ${SCRIPTNAME} -help ${LIGHTRED}for supported syntax and usage.${ENDCOLOR}" >&2
+    RUNOPTION=-1
     ;;
 esac
 # =============================================================================
