@@ -7,14 +7,15 @@
 # #3 Type . nicedcv-gpic-workstation -help to get overview of available commands.
 # =============================================================================
 INSTANCETYPE=g4dn.4xlarge
-VOLUMESIZE=250
+VOLUMESIZE=300
 VOLUMETYPE=gp2
 TAGPREFIX=nicedcv-quicudp-demo
 VPCCIDR=172.17.173.192/28
 VPCSUBNETPUBLICACIDR=172.17.173.192/28
-# You will need to manually subscribe to the NICE-DCV EC2 image on AWS Marketplace:
-# https://aws.amazon.com/marketplace/pp/prodview-3k22gxh7x7kdy
-NICEDCVPRODUCTCODE=5kui34zsdoxkj54pr1igh59x1
+#NICE doesn't include the product code in their AMI, leaving this in case it changes down the road
+#NICEDCVPRODUCTCODE=ohxvp94vyvioa6b8i7o30amz
+NICEOWNERID=877902723034
+AMITAG=NVIDIA-Gaming
 # =============================================================================
 LIGHTRED="\e[91m"
 LIGHTGREEN="\e[92m"
@@ -202,9 +203,13 @@ case "$RUNOPTION" in
     IAMINSTANCEPROFILEARN=$((aws iam create-instance-profile --instance-profile-name ${INSTANCEPROFILENAME} | jq '.InstanceProfile.Arn') 2>&1)
     aws iam add-role-to-instance-profile --instance-profile-name ${INSTANCEPROFILENAME} --role-name ${INSTANCEROLENAME}
     echo "[2/5]Fetching latest AMI from AWSMP"
-    AMIID=$((aws ec2 describe-images --region ${AWS_REGION} --owners aws-marketplace --filters "Name=product-code,Values=${NICEDCVPRODUCTCODE}" --query "sort_by(Images, &CreationDate)[-1].[ImageId]") 2>&1)
+    #Product code based fetch
+    #AMIID=$((aws ec2 describe-images --region ${AWS_REGION} --owners aws-marketplace --filters "Name=product-code,Values=${NICEDCVPRODUCTCODE}" --query "sort_by(Images, &CreationDate)[-1].[ImageId]") 2>&1)
     #trimming non-standard command output
-    AMIID=${AMIID:7:-3}
+    #AMIID=${AMIID:7:-3}
+    #Workaround using Owner ID and AMI name
+    AMIID=$((aws ec2 describe-images --region ${AWS_REGION} --filters "Name=owner-id,Values=${NICEOWNERID}" "Name=architecture,Values=x86_64" "Name=is-public,Values=true" "Name=platform,Values=windows" "Name=name,Values=*${AMITAG}*" --query "sort_by(Images, &CreationDate)[-1].ImageId") 2>&1)
+    AMIID=${AMIID:1:-1}
 
     echo "[3/5]Creating security group"
     SGID=$((aws ec2 create-security-group --description ${TAGPREFIX} --group-name ${TAGPREFIX}-SG-${HOSTNAME} --vpc-id ${VPCID:1:-1} --tag-specifications "ResourceType=security-group,Tags=[{Key=Name,Value=${TAGPREFIX}-SG-${HOSTNAME}},{Key=Group,Value=${TAGPREFIX}},{Key=Owner,Value=${HOSTNAME}}]" | jq '.GroupId') 2>&1)
@@ -214,7 +219,7 @@ case "$RUNOPTION" in
       {
         "BlockDeviceMappings": [
             {
-                "DeviceName": "/dev/xvda",
+                "DeviceName": "xvdb",
                 "Ebs": {
                     "DeleteOnTermination": true,
                     "VolumeSize": ${VOLUMESIZE},
@@ -271,11 +276,30 @@ case "$RUNOPTION" in
       }
 EOF
 
+    cat <<-EOF > userdata.txt
+    <powershell>
+    Set-Content -Path C:\Users\Administrator\diskpart.txt -Value 'select disk 1'
+    Add-Content -Path C:\Users\Administrator\diskpart.txt -Value 'attributes disk clear readonly'
+    Add-Content -Path C:\Users\Administrator\diskpart.txt -Value 'convert mbr'
+    Add-Content -Path C:\Users\Administrator\diskpart.txt -Value 'create partition primary'
+    Add-Content -Path C:\Users\Administrator\diskpart.txt -Value 'format quick fs=ntfs label="EBS"'
+    Add-Content -Path C:\Users\Administrator\diskpart.txt -Value 'assign letter="D"'
+    Add-Content -Path C:\Users\Administrator\diskpart.txt -Value 'select disk 2'
+    Add-Content -Path C:\Users\Administrator\diskpart.txt -Value 'attributes disk clear readonly'
+    Add-Content -Path C:\Users\Administrator\diskpart.txt -Value 'convert mbr'
+    Add-Content -Path C:\Users\Administrator\diskpart.txt -Value 'create partition primary'
+    Add-Content -Path C:\Users\Administrator\diskpart.txt -Value 'format quick fs=ntfs label="NVME"'
+    Add-Content -Path C:\Users\Administrator\diskpart.txt -Value 'assign letter="E"'
+    diskpart /s C:\Users\Administrator\diskpart.txt
+    </powershell>
+EOF
+
     sleep 10
-    INSTANCEID=$((aws ec2 run-instances --cli-input-json file://${EC2CONFIGFILENAME}.json --region ${AWS_REGION} | jq '.Instances[0].InstanceId') 2>&1)
+    INSTANCEID=$((aws ec2 run-instances --cli-input-json file://${EC2CONFIGFILENAME}.json --region ${AWS_REGION} --user-data file://userdata.txt | jq '.Instances[0].InstanceId') 2>&1)
     echo "[5/5]Launching instance ${INSTANCEID:1:-1} (this will take a few minutes)..."
     aws ec2 wait instance-status-ok --instance-ids ${INSTANCEID:1:-1}
     rm ./${EC2CONFIGFILENAME}.json
+    rm ./userdata.txt
     TEMP=$((aws ssm put-parameter --name ${TAGPREFIX}-${HOSTNAME} --value ${INSTANCEID:1:-1} --type String) 2>&1)
     echo -e "${LIGHTBLUE}Installation complete. Run script with ${LIGHTCYAN}. ${SCRIPTNAME} -login --hostname ${HOSTNAME} --ip ${LIGHTYELLOW}YOURCLIENTIP ${LIGHTBLUE}to set up the workstation for first connection.${ENDCOLOR}"
     ;;
