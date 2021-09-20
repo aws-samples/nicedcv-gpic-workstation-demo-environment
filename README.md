@@ -23,7 +23,7 @@ The nicedcv-workstation-demo-environment repository contains a script that allow
 
 ## Setup
 1. In the AWS Console, ensure you have the correct region selected and open AWS CloudShell (a terminal icon next to the righty of the search bar is a shortcut to the service)
-2. Once the shell is live, click on **Actions > Upload File** and upload `nicedcv-gpic-workstation-demo-environment.sh`.
+2. Once the shell is live, click on **Actions > Upload File** and upload `nicedcv-gpic-workstation-demo-environment.sh`
 3. Run the script with:
 ```
 . nicedcv-gpic-workstation-demo-environment.sh -create --hostname YOURHOSTNAME
