@@ -85,6 +85,10 @@ If there are multiple workstations configured in the demo environment, only the 
 ## Cost Considerations
 The main costs for this solution are for the instance and data transfer out charges (1.209$/hr and 0.09$/GB respectively in us-east-1). It is recommended to shut down instances when not in use via the `-logout` command. You can check the status of the workstations deployed in the demo environment using the `-status` command.
 
+## References
+* [Blog post - Stream a remote environment with NICE DCV over QUIC UDP for a 4K monitor at 60 FPS](https://aws.amazon.com/blogs/gametech/stream-remote-environment-nice-dcv-quic-udp-4k-monitor-60-fps/)
+* [Reference architecture - Game Production in the Cloud(Workstations)](https://d1.awsstatic.com/architecture-diagrams/ArchitectureDiagrams/game-production-in-the-cloud-workstations-ra.pdf?did=wp_card&trk=wp_card)
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
